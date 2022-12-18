@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:foto_budka/photoScreen.dart';
 
   class LandingScreen extends StatefulWidget {
@@ -30,7 +32,6 @@ import 'package:foto_budka/photoScreen.dart';
   }
 
   class _MyLandingScreenWidgetState extends State<MyLandingScreenWidget> {
-
     final amountOfPhotos = TextEditingController();
     final interval = TextEditingController();
 
@@ -44,9 +45,6 @@ import 'package:foto_budka/photoScreen.dart';
 
     @override
     Widget build(BuildContext context) {
-      final ButtonStyle style =
-      ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20));
-
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -54,11 +52,11 @@ import 'package:foto_budka/photoScreen.dart';
             TextField(
               controller: amountOfPhotos,
             ),
-            Text('Ilość zdjęć wykonanych w serii'),
+            const Text('Ilość zdjęć wykonanych w serii'),
             TextField(
               controller: interval,
             ),
-            Text('Ilość sekund pomiędzy zdjęciami'),
+            const Text('Ilość sekund pomiędzy zdjęciami'),
             const SizedBox(height: 30),
             ElevatedButton(
               style: ButtonStyle(
@@ -72,18 +70,16 @@ import 'package:foto_budka/photoScreen.dart';
                   padding: MaterialStateProperty.all(
                       const EdgeInsets.only(top: 12.0, bottom: 12.0))),
               onPressed: () {
-                Navigator.push(
-                    context,
+                Navigator.of(
+                    context).push(
                     MaterialPageRoute(
-                        builder: (context) => const PhotoScreen()));
+                        builder: (context) => PhotoScreen()));
               },
               child: const Text(
                 'Gotowe!',
-                style: TextStyle(fontSize: 16.0, color: Colors.white),
-              ),
+                style: TextStyle(fontSize: 16.0, color: Colors.white),              ),
             )
-          ],
-        ),
+          ],        ),
       );
     }
   }

@@ -29,6 +29,8 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  camera: ^0.8.1+7
+  flutter_beep: ^1.0.0
   image_picker:
   drag_and_drop_gridview:
     git:
