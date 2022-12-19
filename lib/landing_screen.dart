@@ -1,6 +1,4 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:foto_budka/photoScreen.dart';
 
   class LandingScreen extends StatefulWidget {
@@ -73,7 +71,7 @@ import 'package:foto_budka/photoScreen.dart';
                 Navigator.of(
                     context).push(
                     MaterialPageRoute(
-                        builder: (context) => PhotoScreen()));
+                        builder: (context) => PhotoScreen(amountOfPhotos.text, interval.text)));
               },
               child: const Text(
                 'Gotowe!',

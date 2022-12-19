@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:foto_budka/landing_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
 import 'package:flutter_beep/flutter_beep.dart';
 
 class PhotoScreen extends StatefulWidget {
-  const PhotoScreen({super.key});
+  final String amountOfPhotos;
+  final String interval;
+  const PhotoScreen(this.amountOfPhotos, this.interval, {super.key});
 
   @override
-  _PhotoScreenState createState() => _PhotoScreenState();
+  _PhotoScreenState createState() {
+    return _PhotoScreenState(amountOfPhotos, interval);
+  }
 }
 
 class _PhotoScreenState extends State<PhotoScreen> {
-  late final MyLandingScreenWidget landingScreen;
+  //tu sa te wartosci z poprzedniego ekranu zeby uzyc to do robienia serii zdj w odpowiednim czasie
+  String amountOfPhotos;
+  String interval;
+  _PhotoScreenState(this.amountOfPhotos, this.interval);
   late Timer _timer;
   var _start = 10;
 
@@ -49,10 +55,10 @@ class _PhotoScreenState extends State<PhotoScreen> {
     super.dispose();
   }
 
-
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("")),
+      appBar: AppBar(title: const Text("")),
       body: Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
