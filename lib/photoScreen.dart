@@ -20,12 +20,38 @@ class _PhotoScreenState extends State<PhotoScreen> {
   String interval;
   _PhotoScreenState(this.amountOfPhotos, this.interval);
   late Timer _timer;
-  var _start = 10;
+  var _start = 5;
+  List<XFile> _images = [];
 
 
   _openCamera(BuildContext context) async {
-    var picture = await ImagePicker().pickImage(source: ImageSource.camera);
-    // Navigator.of(context).pop();
+    for(int i = 0; i< int.parse(amountOfPhotos); i++) {
+      var image = await ImagePicker().pickImage(source: ImageSource.camera);
+      setState(() {
+        _images.add(image!);
+        _start = int.parse(interval);
+      });
+      if (i + 1 != int.parse(amountOfPhotos)) {
+        const oneSec = Duration(seconds: 1);
+      _timer = Timer.periodic(
+        oneSec,
+            (Timer timer) {
+          if (_start == 0) {
+            setState(() {
+              timer.cancel();
+            });
+          } else {
+            FlutterBeep.playSysSound(AndroidSoundIDs.TONE_CDMA_ABBR_ALERT);
+            setState(() {
+              _start--;
+            });
+          }
+        },
+      );
+      await Future.delayed(Duration(seconds: int.parse(interval)));
+    }
+    }
+    Navigator.of(context).pop();
   }
 
 
