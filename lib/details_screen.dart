@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class DetailScreen extends StatelessWidget {
   final File image;
@@ -8,6 +9,15 @@ class DetailScreen extends StatelessWidget {
 
   _deleteFile() async {
     await image.delete();
+  }
+
+  // Funkcja wysyłająca request do Rest API
+  _sendImageToServer() async {
+    var url = Uri.parse("http://localhost:8080/photos/upload");
+    var request = http.MultipartRequest("POST", url);
+    var file = await http.MultipartFile.fromPath("photo", image.path);
+    request.files.add(file);
+    var response = await request.send();
   }
 
   @override
