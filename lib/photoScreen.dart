@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:gallery_saver/files.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
 import 'package:flutter_beep/flutter_beep.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
+
+import 'exportScreen.dart';
 
 class PhotoScreen extends StatefulWidget {
   final String amountOfPhotos;
@@ -22,11 +27,23 @@ class _PhotoScreenState extends State<PhotoScreen> {
   late Timer _timer;
   var _start = 5;
   List<XFile> _images = [];
+  bool isButtonVisible = true;
+
+  _sendImageToServer(File image) async {
+    var url = Uri.parse("http://localhost:8080/photos/upload");
+    var request = http.MultipartRequest("POST", url);
+    var file = await http.MultipartFile.fromPath("photo", image.path);
+    request.files.add(file);
+    var response = await request.send();
+  }
 
 
   _openCamera(BuildContext context) async {
     for(int i = 0; i< int.parse(amountOfPhotos); i++) {
       var image = await ImagePicker().pickImage(source: ImageSource.camera);
+      if(image != null) {
+        _sendImageToServer(File(image.path));
+      }
       setState(() {
         _images.add(image!);
         _start = int.parse(interval);
@@ -51,11 +68,18 @@ class _PhotoScreenState extends State<PhotoScreen> {
       await Future.delayed(Duration(seconds: int.parse(interval)));
     }
     }
-    Navigator.of(context).pop();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ExportScreen()),
+    );
+
   }
 
 
   void startTimer() {
+    setState(() {
+      isButtonVisible = false;
+    });
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(
       oneSec,
@@ -65,6 +89,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
             timer.cancel();
           });
           _openCamera(context);
+
         } else {
           FlutterBeep.playSysSound(AndroidSoundIDs.TONE_CDMA_ABBR_ALERT);
           setState(() {
@@ -73,6 +98,32 @@ class _PhotoScreenState extends State<PhotoScreen> {
         }
       },
     );
+  }
+
+  Widget _decideView() {
+    if(isButtonVisible) {
+        return ElevatedButton(
+          style: ButtonStyle(
+              shape: MaterialStateProperty.all<
+                  RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28.0),
+                      side: const BorderSide(color: Colors.blue))),
+              backgroundColor: MaterialStateProperty.all<Color>(
+                  Colors.lightBlue),
+              padding: MaterialStateProperty.all(
+                  const EdgeInsets.only(top: 12.0, bottom: 12.0))),
+          onPressed: () {
+            startTimer();
+          },
+          child: const Text(
+            'Gotowe!',
+            style: TextStyle(fontSize: 36.0, color: Colors.white),              ),
+        );
+    } else {
+      return Text("$_start",
+        style: const TextStyle(fontSize: 36.0, color: Colors.black),);
+    }
   }
 
   @override
@@ -90,27 +141,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Text("$_start",
-            style: const TextStyle(fontSize: 36.0, color: Colors.black),),
-          ElevatedButton(
-            style: ButtonStyle(
-                shape: MaterialStateProperty.all<
-                    RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28.0),
-                        side: const BorderSide(color: Colors.blue))),
-                backgroundColor: MaterialStateProperty.all<Color>(
-                    Colors.lightBlue),
-                padding: MaterialStateProperty.all(
-                    const EdgeInsets.only(top: 12.0, bottom: 12.0))),
-            onPressed: () {
-              startTimer();
-            },
-            child: const Text(
-              'Gotowe!',
-              style: TextStyle(fontSize: 36.0, color: Colors.white),              ),
-          ),
-
+          _decideView(),
         ],
       ),
       ),
