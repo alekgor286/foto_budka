@@ -1,11 +1,8 @@
-import 'dart:developer';
-import 'dart:io';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart';
-import 'package:drag_and_drop_gridview/devdrag.dart';
-import 'details_screen.dart';
-import 'main.dart';
+import 'package:foto_budka/landing_screen.dart';
+import 'package:http/http.dart' as http;
 
 class ExportScreen extends StatefulWidget {
   const ExportScreen({super.key});
@@ -15,119 +12,63 @@ class ExportScreen extends StatefulWidget {
 }
 
 class _ExportScreenState extends State<ExportScreen> {
-  final List<PhotoItem> _items = [];
-  ScrollController? _scrollController;
+  String _pdfUrl = "";
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _openFile();
-    });
   }
 
-  _downloadPDF() {
+  _downloadPDF() async {
       var url = Uri.parse("http://localhost:8080/photos/downloadPDF");
-  }
-
-  _openFile() async {
-    setState(() {
-      _items.clear();
-    });
-    Directory appDocDir = await getApplicationDocumentsDirectory();
-    var fileSystemEntity = appDocDir.listSync();
-    log('data: $fileSystemEntity');
-    fileSystemEntity
-        .removeWhere((element) => !basename(element.path).contains(".jpg"));
-
-    for (var element in fileSystemEntity) {
+      http.Response response = await http.get(url);
       setState(() {
-        _items.add(PhotoItem(File(element.path)));
+        _pdfUrl = base64Encode(response.bodyBytes);
       });
-    }
   }
 
-  List<Widget> _decideImageView() {
-    if (_items.isEmpty) {
-      return [const Text("Nie wybrano zdjeć!"),
-        Row(mainAxisAlignment: MainAxisAlignment.center)
-      ];
-    } else {
-      return [DragAndDropGridView(
-          controller: _scrollController,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisSpacing: 25,
-            mainAxisSpacing: 25,
-            crossAxisCount: 3,
-          ),
-          padding: const EdgeInsets.all(20),
-          itemCount: _items.length,
-          onWillAccept: (oldIndex, newIndex) {
-            return true;
-          },
-          onReorder: (oldIndex, newIndex) {
-            final temp = _items[oldIndex];
-            _items[oldIndex] = _items[newIndex];
-            _items[newIndex] = temp;
-
-            setState(() {});
-          },
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DetailScreen(
-                      image: _items[index].image,
-                    ),
-                  ),
-                ).then((value) => _openFile());
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: FileImage(_items[index].image),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ElevatedButton(
-          onPressed: () {
-            _downloadPDF();
-          },
-          child: Text("Exportuj do PDF"),
-        ),
-        Row(mainAxisAlignment: MainAxisAlignment.center)
-      ];
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(Strings.appTitle),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.centerRight,
-                end: Alignment.centerLeft,
-                colors: <Color>[Colors.lightBlueAccent, Colors.blue]),
-          ),
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+            style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(
+                Colors.lightBlue),
+                padding: MaterialStateProperty.all(
+                const EdgeInsets.only(top: 12.0, bottom: 12.0, left: 10.0, right: 10.0))),
+              onPressed: () {
+                _downloadPDF();
+              },
+              child: const Text(
+                'Exportuj do PDF',
+                style: TextStyle(fontSize: 36.0, color: Colors.white), ),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                      Colors.lightBlue),
+                  padding: MaterialStateProperty.all(
+                      const EdgeInsets.only(top: 12.0, bottom: 12.0, left: 10.0, right: 10.0))),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LandingScreen()),
+                );
+              },
+              child: const Text(
+                'Powrót',
+                style: TextStyle(fontSize: 36.0, color: Colors.white), ),
+            ),
+          ],
         ),
       ),
-        body: Stack(
-            children: <Widget>[
-              Container(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: _decideImageView(),
-                    ),
-                  )),
-            ]),);
+    );
   }
 }
