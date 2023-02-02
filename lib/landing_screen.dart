@@ -49,10 +49,12 @@ import 'package:foto_budka/photoScreen.dart';
           children: <Widget>[
             TextField(
               controller: amountOfPhotos,
+              keyboardType: TextInputType.number,
             ),
             const Text('Ilość zdjęć wykonanych w serii'),
             TextField(
               controller: interval,
+              keyboardType: TextInputType.number,
             ),
             const Text('Ilość sekund pomiędzy zdjęciami'),
             const SizedBox(height: 30),
