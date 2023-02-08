@@ -30,9 +30,11 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   gallery_saver:
+  open_file: ^3.2.1
+  uuid: ^3.0.7
   camera: ^0.8.1+7
   flutter_beep: ^1.0.0
-  image_picker:
+  image_picker: ^0.8.6
   drag_and_drop_gridview:
     git:
       url: https://github.com/DevOrbiter/drag_and_drop_gridview.git

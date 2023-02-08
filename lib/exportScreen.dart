@@ -1,8 +1,11 @@
-import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:foto_budka/landing_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 class ExportScreen extends StatefulWidget {
   const ExportScreen({super.key});
@@ -13,6 +16,7 @@ class ExportScreen extends StatefulWidget {
 
 class _ExportScreenState extends State<ExportScreen> {
   String _pdfUrl = "";
+  var uuid = const Uuid();
 
   @override
   void initState() {
@@ -20,12 +24,17 @@ class _ExportScreenState extends State<ExportScreen> {
   }
 
   _downloadPDF() async {
-      var url = Uri.parse("http://localhost:8080/photos/downloadPDF");
-      http.Response response = await http.get(url);
-      setState(() {
-        _pdfUrl = base64Encode(response.bodyBytes);
-      });
+    var url = Uri.parse("http://localhost:8080/photos/downloadPDF");
+    http.Response response = await http.get(url);
+    final pdfBytes = response.bodyBytes;
+
+    final filename = '${uuid.v4()}.pdf';
+    final file = await File('${(await getApplicationDocumentsDirectory()).path}/$filename').create();
+    await file.writeAsBytes(pdfBytes);
+
+    OpenFile.open(file.path);
   }
+
 
 
   @override
