@@ -26,7 +26,6 @@ class _PhotoScreenState extends State<PhotoScreen> {
   _PhotoScreenState(this.amountOfPhotos, this.interval);
   late Timer _timer;
   var _start = 5;
-  List<XFile> _images = [];
   bool isButtonVisible = true;
 
   _sendImageToServer(File image) async {
@@ -45,7 +44,6 @@ class _PhotoScreenState extends State<PhotoScreen> {
         _sendImageToServer(File(image.path));
       }
       setState(() {
-        _images.add(image!);
         _start = int.parse(interval);
       });
       if (i + 1 != int.parse(amountOfPhotos)) {

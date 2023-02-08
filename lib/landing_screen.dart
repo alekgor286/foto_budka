@@ -41,6 +41,26 @@ import 'package:foto_budka/photoScreen.dart';
       super.dispose();
     }
 
+    void _showErrorDialog() {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Błąd!"),
+            content: Text("Wprowadzono błędne wartości"),
+            actions: [
+              ElevatedButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     @override
     Widget build(BuildContext context) {
       return Center(
@@ -70,11 +90,18 @@ import 'package:foto_budka/photoScreen.dart';
                   padding: MaterialStateProperty.all(
                       const EdgeInsets.only(top: 12.0, bottom: 12.0))),
               onPressed: () {
-                Navigator.of(
-                    context).push(
-                    MaterialPageRoute(
-                        builder: (context) => PhotoScreen(amountOfPhotos.text, interval.text)));
-              },
+                if(amountOfPhotos.text.substring(0, 1)=="0" || interval.text.substring(0, 1)=="0"
+                || amountOfPhotos.text.substring(0, 1)=="," || interval.text.substring(0, 1)==","
+                || amountOfPhotos.text.substring(0, 1)=="." || interval.text.substring(0, 1)=="."
+                || amountOfPhotos.text.isEmpty || interval.text.isEmpty) {
+                  _showErrorDialog();
+                } else {
+                  Navigator.of(
+                      context).push(
+                      MaterialPageRoute(
+                          builder: (context) => PhotoScreen(amountOfPhotos.text, interval.text)));
+                }
+             },
               child: const Text(
                 'Gotowe!',
                 style: TextStyle(fontSize: 16.0, color: Colors.white),              ),
