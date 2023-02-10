@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foto_budka/photoScreen.dart';
+import 'package:camera/camera.dart';
 
   class LandingScreen extends StatefulWidget {
     const LandingScreen({super.key});
@@ -89,17 +90,21 @@ import 'package:foto_budka/photoScreen.dart';
                       Colors.lightBlue),
                   padding: MaterialStateProperty.all(
                       const EdgeInsets.only(top: 12.0, bottom: 12.0))),
-              onPressed: () {
-                if(amountOfPhotos.text.substring(0, 1)=="0" || interval.text.substring(0, 1)=="0"
-                || amountOfPhotos.text.substring(0, 1)=="," || interval.text.substring(0, 1)==","
-                || amountOfPhotos.text.substring(0, 1)=="." || interval.text.substring(0, 1)=="."
-                || amountOfPhotos.text.isEmpty || interval.text.isEmpty) {
+              onPressed: () async {
+                int? amountOfPhotosNumber = int.tryParse(amountOfPhotos.text);
+                int? intervalNumber = int.tryParse(interval.text);
+                if (amountOfPhotosNumber==0 || intervalNumber==0
+                || amountOfPhotosNumber==null || intervalNumber==null) {
                   _showErrorDialog();
                 } else {
-                  Navigator.of(
-                      context).push(
+                  await availableCameras().then(
+                        (value) => Navigator.push(
+                      context,
                       MaterialPageRoute(
-                          builder: (context) => PhotoScreen(amountOfPhotos.text, interval.text)));
+                        builder: (context) => PhotoScreen(value, amountOfPhotos.text, interval.text),
+                      ),
+                    ),
+                  );
                 }
              },
               child: const Text(

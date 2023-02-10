@@ -32,7 +32,7 @@ dependencies:
   gallery_saver:
   open_file: ^3.2.1
   uuid: ^3.0.7
-  camera: ^0.8.1+7
+  camera: ^0.10.3
   flutter_beep: ^1.0.0
   image_picker: ^0.8.6
   drag_and_drop_gridview:
