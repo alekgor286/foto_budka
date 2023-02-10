@@ -24,7 +24,7 @@ class _ExportScreenState extends State<ExportScreen> {
   }
 
   _downloadPDF() async {
-    var url = Uri.parse("http://192.168.56.1:8080/photos/downloadPDF");
+    var url = Uri.parse("http://localhost:8080/photos/downloadPDF");
     http.Response response = await http.get(url);
     final pdfBytes = response.bodyBytes;
 

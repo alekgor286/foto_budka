@@ -46,7 +46,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
   }
 
   _sendImageToServer(File image) async {
-    var url = Uri.parse("http://192.168.56.1:8080/photos/upload");
+    var url = Uri.parse("http://localhost:8080/photos/upload");
     var request = http.MultipartRequest("POST", url);
     var file = await http.MultipartFile.fromPath("photo", image.path);
     request.files.add(file);
