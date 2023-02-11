@@ -1,9 +1,8 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:gallery_saver/files.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:async';
-import 'package:flutter_beep/flutter_beep.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_beep/flutter_beep.dart';
+import 'dart:async';
 import 'dart:io';
 
 import 'exportScreen.dart';
@@ -11,22 +10,40 @@ import 'exportScreen.dart';
 class PhotoScreen extends StatefulWidget {
   final String amountOfPhotos;
   final String interval;
-  const PhotoScreen(this.amountOfPhotos, this.interval, {super.key});
+  final List<CameraDescription>? cameras;
+  const PhotoScreen(this.cameras, this.amountOfPhotos, this.interval, {super.key});
 
   @override
-  _PhotoScreenState createState() {
-    return _PhotoScreenState(amountOfPhotos, interval);
-  }
+  _PhotoScreenState createState() => _PhotoScreenState();
 }
 
 class _PhotoScreenState extends State<PhotoScreen> {
-  //tu sa te wartosci z poprzedniego ekranu zeby uzyc to do robienia serii zdj w odpowiednim czasie
-  String amountOfPhotos;
-  String interval;
-  _PhotoScreenState(this.amountOfPhotos, this.interval);
+  late CameraController controller;
+  XFile? pictureFile;
+  bool isButtonActive = true;
+  int _start = 5;
   late Timer _timer;
-  var _start = 5;
-  bool isButtonVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = CameraController(
+      widget.cameras![0],
+      ResolutionPreset.max,
+    );
+    controller.initialize().then((_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 
   _sendImageToServer(File image) async {
     var url = Uri.parse("http://localhost:8080/photos/upload");
@@ -36,47 +53,75 @@ class _PhotoScreenState extends State<PhotoScreen> {
     var response = await request.send();
   }
 
-
   _openCamera(BuildContext context) async {
-    for(int i = 0; i< int.parse(amountOfPhotos); i++) {
-      var image = await ImagePicker().pickImage(source: ImageSource.camera);
-      if(image != null) {
-        _sendImageToServer(File(image.path));
-      }
-      setState(() {
-        _start = int.parse(interval);
-      });
-      if (i + 1 != int.parse(amountOfPhotos)) {
-        const oneSec = Duration(seconds: 1);
-      _timer = Timer.periodic(
-        oneSec,
-            (Timer timer) {
-          if (_start == 0) {
-            setState(() {
-              timer.cancel();
-            });
-          } else {
-            FlutterBeep.playSysSound(AndroidSoundIDs.TONE_CDMA_ABBR_ALERT);
-            setState(() {
-              _start--;
-            });
+    for(int i = 0; i< int.parse(widget.amountOfPhotos); i++) {
+      controller.takePicture().then((XFile? file) {
+        if(mounted) {
+          if(file != null) {
+            print("The picture has been taken");
+            FlutterBeep.playSysSound(AndroidSoundIDs.TONE_CDMA_ANSWER);
+            _sendImageToServer(File(file.path));
           }
-        },
-      );
-      await Future.delayed(Duration(seconds: int.parse(interval)));
+        }
+      });
+      await Future.delayed(const Duration(seconds: 1));
+      if (i + 1 != int.parse(widget.amountOfPhotos)) {
+        setState(() {
+          _start = int.parse(widget.interval);
+        });
+        const oneSec = Duration(seconds: 1);
+        _timer = Timer.periodic(
+          oneSec,
+              (Timer timer) {
+            if (_start == 0) {
+              setState(() {
+                timer.cancel();
+              });
+            } else {
+              FlutterBeep.playSysSound(AndroidSoundIDs.TONE_CDMA_ABBR_ALERT);
+              setState(() {
+                _start--;
+              });
+            }
+          },
+        );
+        await Future.delayed(Duration(seconds: int.parse(widget.interval)));
+      }
     }
-    }
+    await Future.delayed(const Duration(seconds: 3));
+    FlutterBeep.playSysSound(AndroidSoundIDs.TONE_CDMA_CONFIRM);
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const ExportScreen()),
     );
-
+  }
+  
+  Widget _decideView() {
+    if(isButtonActive) {
+      return GestureDetector(
+        onTap: () {
+          if(isButtonActive) {
+            startTimer();
+            setState(() {
+              isButtonActive = false;
+            });
+          }
+        },
+        child: button( const Icon(
+          Icons.camera_alt_outlined,
+          color: Colors.black54,
+        ), Alignment.bottomCenter),
+      );
+    } else {
+      return button(Text(_start.toString()), Alignment.bottomCenter);
+    }
+    
   }
 
 
   void startTimer() {
     setState(() {
-      isButtonVisible = false;
+      isButtonActive = false;
     });
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(
@@ -98,53 +143,52 @@ class _PhotoScreenState extends State<PhotoScreen> {
     );
   }
 
-  Widget _decideView() {
-    if(isButtonVisible) {
-        return ElevatedButton(
-          style: ButtonStyle(
-              shape: MaterialStateProperty.all<
-                  RoundedRectangleBorder>(
-                  RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28.0),
-                      side: const BorderSide(color: Colors.blue))),
-              backgroundColor: MaterialStateProperty.all<Color>(
-                  Colors.lightBlue),
-              padding: MaterialStateProperty.all(
-                  const EdgeInsets.only(top: 12.0, bottom: 12.0))),
-          onPressed: () {
-            startTimer();
-          },
-          child: const Text(
-            'Gotowe!',
-            style: TextStyle(fontSize: 36.0, color: Colors.white),              ),
-        );
-    } else {
-      return Text("$_start",
-        style: const TextStyle(fontSize: 36.0, color: Colors.black),);
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("")),
-      body: Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
+      body: Stack(
+        children: [
+          CameraPreview(controller),
           _decideView(),
+          GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: button( const Icon(
+              Icons.arrow_left,
+              color: Colors.black54,
+            ), Alignment.bottomRight),
+          ),
         ],
-      ),
       ),
     );
   }
 
+  Widget button(Widget widget, Alignment alignment) {
+    return Align(
+      alignment: alignment,
+      child: Container(
+        margin: const EdgeInsets.only(
+          left: 20,
+          bottom: 20,
+        ),
+        height: 50,
+        width: 50,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              offset: Offset(2, 2),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Center(
+          child: widget,
+        ),
+      ),
+    );
+  }
 }
-
